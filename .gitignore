@@ -1,0 +1,7 @@
+dist
+build
+test
+test_dest
+logfile.out
+.pyc
+
