@@ -26,7 +26,8 @@ play_list_bank = [
             'So Strange - The Jesters.mp3', 
             'Mama Guitar - Julius LaRosa.mp3',
             'Say It Isnt So - Teddi King.mp3',
-            'Next In Line - Johnny Cash.mp3']
+            'Next In Line - Johnny Cash.mp3',
+            'random file with no split']
 
 random_categories = [
     'Jazz',
@@ -83,14 +84,11 @@ class TestMusicOrganiztion(unittest.TestCase):
     def test_list_from_csv(self):
         csv_file_name = 'test-list.txt'
         playlist_files = music_organizer.create_list_from_csv(csv_file_name)
-        self.assertTrue('Mama Guitar - Julius LaRosa.mp3' in playlist_files)
-        self.assertTrue('Say It Isnt So - Teddi King.mp3' in playlist_files)
-        self.assertTrue('Next In Line - Johnny Cash.mp3' in playlist_files)
-        self.assertTrue('So Strange - The Jesters.mp3' in playlist_files)
-        self.assertFalse(' - .mp3' in playlist_files)
-        self.assertFalse('' in playlist_files)
-        self.assertFalse(' ' in playlist_files)
-        self.assertFalse(' .mp3' in playlist_files)
+        print playlist_files
+        self.assertTrue(['mama guitar', 'julius larosa'] in playlist_files)
+        self.assertTrue(['say it isnt so', 'teddi king'] in playlist_files)
+        self.assertTrue(['next in line', 'johnny cash'] in playlist_files)
+        self.assertTrue(['so strange', 'jesters'] in playlist_files)
 
 
     def test_add_files_to_playlist_folder(self):
@@ -103,8 +101,8 @@ class TestMusicOrganiztion(unittest.TestCase):
         src = 'play-list-bank'
         dst = 'dest-play-list'
         missing_music_list = music_organizer.create_playlist_from_bank(csv_file_name, src, dst)
-        self.assertTrue('So Stranger - The Jesterers.mp3' in missing_music_list)
-        self.assertTrue('In Line - Johnny Cash.mp3' in missing_music_list)
+        self.assertTrue(['so stranger', 'jesterers'] in missing_music_list)
+        self.assertFalse(['in line', 'johnny cash'] in missing_music_list)
         self.assertTrue('Mama Guitar - Julius LaRosa.mp3' in os.listdir(dst))
         self.assertTrue('Say It Isnt So - Teddi King.mp3' in os.listdir(dst))
         self.assertTrue('Next In Line - Johnny Cash.mp3' in os.listdir(dst))

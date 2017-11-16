@@ -2,6 +2,7 @@ import os
 import datetime
 import argparse
 import shutil
+import re
 
 def write_log(s):    
     with open('logfile.out', 'a+') as f:
@@ -30,9 +31,9 @@ def organize_files_by_artist(src, dst):
                     write_log('Error is %s' % error)
 
 def clean_string(s):
-    s = ''.join([i if ord(i) < 128 else '' for i in s])
-    s.replace(' .mp3', '.mp3').replace('\'', '').replace('"', '')
-    return s
+    res = ''.join([i if ord(i) < 128 else '' for i in s])
+    res.replace('.mp3', '.mp3').replace('\'', '').replace('"', '')
+    return res
 
 def create_list_from_csv(list_csv):
     res = []
@@ -41,7 +42,10 @@ def create_list_from_csv(list_csv):
             if line == ',':
                 pass
             else:
-                res.append(clean_string(line).replace('\t', ' - ').replace('\n', '.mp3'))
+                new_line = clean_string(line).lower().replace('\n', '').replace('the ', '').replace(',', '').replace('\'', '').replace('"', '')
+                new_line = re.sub(r'\([^)]*\)', '', new_line).replace(' .', '.').split('\t')
+                res.append(new_line)
+                
     return res
 
 def create_playlist_from_bank(playlist_csv, src, dst):
@@ -55,7 +59,7 @@ def create_playlist_from_bank(playlist_csv, src, dst):
         os.mkdir(dst)
     except OSError:
         print "Output File already Exists, Will Continue to put files in this directory "
-        write_log("Output File already Exists , Will Continue to put files in this directory")
+        write_log("Output File already Exists , Will Delete folder and Continue to put files in this directory")
 
     if not os.path.exists(src):
         print 'File does not exist'
@@ -63,15 +67,21 @@ def create_playlist_from_bank(playlist_csv, src, dst):
     else:
         for root, dirnames, filenames in os.walk(src):
             for file in filenames:
-                file_cleaned = clean_string(file)
-                if file_cleaned in playlist:
-                    shutil.copy(os.path.join(root, file), os.path.join(dst, file))
-                    playlist.remove(file_cleaned)
+                if ' - ' in file:
+                    file_cleaned = clean_string(file).lower().replace('\n', '').replace('the ', '').replace(',', '').replace('\'', '').replace('"', '')
+                    file_cleaned = re.sub(r'\([^)]*\)', '', file_cleaned).replace(' .', '.').split(' - ')
+                    for song in playlist:
+                        try:
+                            if song[0] in file_cleaned[0] and song[1] in file_cleaned[1]:
+                                shutil.copy(os.path.join(root, file), os.path.join(dst, file))
+                                playlist.remove(song)
+                        except IndexError:
+                            print file
     print "the following files have not been found in your song bank:"
     write_report(dst, "the following files have not been found in your song bank:")
     for item in playlist:
-        print item
-        write_report(dst, item)
+        print '%s - %s' % (item[0], item[1])
+        write_report(dst, '%s - %s' % (item[0], item[1]))
     write_report(dst, "There are %s not found in your music bank" % len(playlist))
     return playlist
 
